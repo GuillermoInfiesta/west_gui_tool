@@ -1,6 +1,6 @@
 import shutil
 import subprocess
-import sys
+import sys, os
 import tkinter as tk
 from tkinter import ttk
 import threading
@@ -48,13 +48,28 @@ def west_diff():
 def on_diff_button():
 	threading.Thread(target=west_diff).start()
 
+def search_venv():
+	print("Searching .venv ...")
+	venv_expected_path = os.path.join("..", ".venv", "Scripts", "python.exe")
+	venv_expected_path = os.path.abspath(venv_expected_path)
+	if os.path.exists(venv_expected_path):
+		print("Venv found, rerunning program")
+		os.execv(venv_expected_path, [venv_expected_path, os.path.abspath(__file__)])
+	else:
+		print("Venv not found")
+
 def main():
 	global west_path, diff_button, logging_box
+
+	#Add current python interpreter dir to PATH so west can be found coming from execv
+	os.environ['PATH'] = os.path.dirname(sys.executable) + os.pathsep + os.environ['PATH']
+	
 	west_path = shutil.which('west')
 	if west_path:
 		print(f"West found at {west_path}")
 	else:
-		print("West not found")
+		search_venv()
+		return
 
 	root = tk.Tk()
 	root.title("West GUI Tool")
