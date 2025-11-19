@@ -6,13 +6,15 @@ from tkinter import ttk, filedialog
 import threading
 
 class WorkspaceSelectFrame(tk.Tk):
-    def __init__(self, root, venv="", workspace=""):
+    def __init__(self, root,  continue_cb, venv="", workspace=""):
         self.root = root
         self.main_frame = None
         self.select_venv_dir_frame = None
         self.venv_dir = tk.StringVar(value=venv)
         self.select_workspace_dir_frame = None
         self.workspace_dir = tk.StringVar(value=workspace)
+        self.continue_button = None
+        self.continue_cb = continue_cb
 
     def create_window(self, x, y, height, width):
         self.main_frame = tk.Frame(self.root, height=height, width=width)
@@ -51,6 +53,16 @@ class WorkspaceSelectFrame(tk.Tk):
                                             command=workspace_select)
         select_workspace_button.pack(side="left")
         select_workspace_text.pack(side="right")
- 
+
+        def on_continue_button():
+            if (self.venv_dir.get() not in ["", "Selected path is not a valid .venv"] and
+                self.workspace_dir.get() not in ["", "Selected path is not a valid workspace"]):
+
+                self.continue_cb(self.venv_dir.get(), self.workspace_dir.get())
+
+        self.continue_button = tk.Button(self.main_frame, text="Continue",
+                                        command=on_continue_button)
+        self.continue_button.pack(side="bottom")
+
     def get_frame(self):
         return self.main_frame

@@ -49,35 +49,35 @@ def west_diff():
 def on_diff_button():
 	threading.Thread(target=west_diff).start()
 
-def search_venv():
-	print("Searching .venv ...")
-	venv_expected_path = os.path.join("..", ".venv", "Scripts", "python.exe")
-	venv_expected_path = os.path.abspath(venv_expected_path)
-	if os.path.exists(venv_expected_path):
-		print("Venv found, rerunning program")
-		os.execv(venv_expected_path, [venv_expected_path, os.path.abspath(__file__)])
-	else:
-		print("Venv not found")
+def set_paths_and_restart(venv_path, workspace_path):
+	venv_path = os.path.join(venv_path, "Scripts", "python.exe")
+	os.chdir(workspace_path)
+	os.execv(venv_path, [venv_path, os.path.abspath(__file__)])
+
+def paths_are_set():
+	global west_path
+	west_path = shutil.which('west')
+	if west_path == None:
+		return False
+	if not os.path.exists(os.path.join(os.getcwd(), ".west", "config")):
+		return False
+	return True
 
 def main():
 	global west_path, diff_button, logging_box
 
 	#Add current python interpreter dir to PATH so west can be found coming from execv
 	os.environ['PATH'] = os.path.dirname(sys.executable) + os.pathsep + os.environ['PATH']
-	
-	west_path = shutil.which('west')
-	if west_path:
-		print(f"West found at {west_path}")
-	else:
-		search_venv()
-		return
 
 	root = tk.Tk()
 	root.title("West GUI Tool")
 	root.geometry("1080x720")
 
-	frame1 = wsc.WorkspaceSelectFrame(root)
-	frame1.create_window(10, 50, 200, 600)
+	if not paths_are_set():
+		wsc_frame = wsc.WorkspaceSelectFrame(root, set_paths_and_restart)
+		wsc_frame.create_window(10, 50, 600, 600)
+		root.mainloop()
+		return
 
 	diff_button = tk.Button(root, text="Run diff", command=on_diff_button)
 	diff_button.pack(padx=20, pady=20)
