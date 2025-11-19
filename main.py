@@ -3,6 +3,7 @@ import subprocess
 import sys, os
 import tkinter as tk
 from tkinter import ttk
+import workspace_select_screen as wsc
 import threading
 
 west_path=None
@@ -74,6 +75,9 @@ def main():
 	root = tk.Tk()
 	root.title("West GUI Tool")
 	root.geometry("1080x720")
+
+	frame1 = wsc.WorkspaceSelectFrame(root)
+	frame1.create_window(10, 50, 200, 600)
 
 	diff_button = tk.Button(root, text="Run diff", command=on_diff_button)
 	diff_button.pack(padx=20, pady=20)
