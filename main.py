@@ -3,11 +3,11 @@ import subprocess
 import sys, os
 import tkinter as tk
 from tkinter import ttk
-import workspace_select_screen as wsc
+import workspace_select_screen as wss
+import workspace_cmd_screen as wcs
 import threading
 
 west_path=None
-diff_button=None
 logging_box=None
 logging_box_ocupation=0
 _NEW_LINE_ = "\r\n"
@@ -25,7 +25,7 @@ def display_log(line):
 	logging_box.update_idletasks()
 
 def run_west_command(command):
-	global west_path, diff_button, logging_box
+	global west_path, logging_box
 	display_log(f"-> {west_path} {command}" + _NEW_LINE_)
 	pc = subprocess.Popen(f"{west_path} {command}",
             stdout=subprocess.PIPE,
@@ -39,15 +39,6 @@ def run_west_command(command):
 	pc.wait()
 
 	return pc.stdout, pc.returncode
-
-def west_diff():
-	global diff_button
-	diff_button.config(state=tk.DISABLED, text="Running diff")
-	logs, rc = run_west_command("diff")
-	diff_button.config(state=tk.NORMAL, text="Run diff")
-
-def on_diff_button():
-	threading.Thread(target=west_diff).start()
 
 def set_paths_and_restart(venv_path, workspace_path):
 	venv_path = os.path.join(venv_path, "Scripts", "python.exe")
@@ -64,7 +55,7 @@ def paths_are_set():
 	return True
 
 def main():
-	global west_path, diff_button, logging_box
+	global west_path, logging_box
 
 	#Add current python interpreter dir to PATH so west can be found coming from execv
 	os.environ['PATH'] = os.path.dirname(sys.executable) + os.pathsep + os.environ['PATH']
@@ -74,13 +65,13 @@ def main():
 	root.geometry("1080x720")
 
 	if not paths_are_set():
-		wsc_frame = wsc.WorkspaceSelectFrame(root, set_paths_and_restart)
-		wsc_frame.create_window(10, 50, 600, 600)
+		wss_frame = wss.WorkspaceSelectFrame(root, set_paths_and_restart)
+		wss_frame.create_window(10, 50, 600, 600)
 		root.mainloop()
 		return
 
-	diff_button = tk.Button(root, text="Run diff", command=on_diff_button)
-	diff_button.pack(padx=20, pady=20)
+	wcs_frame = wcs.WorkspaceCmdFrame(root, run_west_command)
+	wcs_frame.create_window(10, 100, 1000, 300)
 
 	frame = ttk.Frame(root)
 	frame.pack(padx=20, pady=10, side="bottom", fill="x")
