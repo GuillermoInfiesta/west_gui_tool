@@ -31,6 +31,7 @@ class WorkspaceCmdFrame(tk.Tk):
         self.clean_btn = tk.Button(self.main_frame, text="Clean workspace")
         self.manifest_path = tk.Frame(self.main_frame)
         self.manifest_path_string = tk.StringVar(value=get_workspace_manifest_path())
+        self.update_btn = tk.Button(self.main_frame, text="Update")
     
     def create_window(self, x, y, height, width):
         self.main_frame.config(height=height, width=width)
@@ -39,7 +40,7 @@ class WorkspaceCmdFrame(tk.Tk):
         #Diff button
         def diff_btn_cb():
             self.__config_buttons_state(state=tk.DISABLED)
-            self.cmd_cb("diff")
+            self.cmd_cb("diff", True)
             self.__config_buttons_state(state=tk.ACTIVE)
 
         self.diff_btn.config(command=lambda: threading.Thread(target=diff_btn_cb).start())
@@ -48,7 +49,7 @@ class WorkspaceCmdFrame(tk.Tk):
         #Clean workspace
         def clean_btn_cb():
             self.__config_buttons_state(state=tk.DISABLED)
-            self.cmd_cb("forall -c \"git restore . && git clean -fdx\"")
+            self.cmd_cb("forall -c \"git restore . && git clean -fdx\"", True)
             self.__config_buttons_state(state=tk.ACTIVE)
 
         self.clean_btn.config(command=lambda: threading.Thread(target=clean_btn_cb).start())
@@ -72,8 +73,23 @@ class WorkspaceCmdFrame(tk.Tk):
                                          command=manifest_path_select)
         manifest_path_button.pack(side="left")
         manifest_path_text.pack(side="right")
+
         #Update
+        def update_btn_cb():
+            self.__config_buttons_state(tk.DISABLED)
+            self.cmd_cb("update", True)
+            self.cmd_cb("zephyr-export", True)
+            _, rc = self.cmd_cb("packages pip --install", True)
+            if(rc != 0):
+                print("Zephyr orlder than v4.1.0")
+                self.cmd_cb("pip install -r zephyr/scripts/requirements.txt", False)
+            self.__config_buttons_state(tk.ACTIVE)
+
+        self.update_btn.config(command=lambda: threading.Thread(target=update_btn_cb).start())
+        self.update_btn.pack()
+
     
     def __config_buttons_state(self, state):
         self.diff_btn.config(state=state)
         self.clean_btn.config(state=state)
+        self.update_btn.config(state=state)

@@ -24,10 +24,11 @@ def display_log(line):
 	logging_box.see(tk.END)
 	logging_box.update_idletasks()
 
-def run_west_command(command):
+def run_command(command, is_west_cmd):
 	global west_path, logging_box
-	display_log(f"-> {west_path} {command}" + _NEW_LINE_)
-	pc = subprocess.Popen(f"{west_path} {command}",
+	full_command = f"{west_path if is_west_cmd else ""} {command}"
+	display_log(f"-> {full_command}" + _NEW_LINE_)
+	pc = subprocess.Popen(f"{full_command}",
             stdout=subprocess.PIPE,
             stderr=subprocess.STDOUT,
             text=True,
@@ -70,12 +71,12 @@ def main():
 		root.mainloop()
 		return
 
-	wcs_frame = wcs.WorkspaceCmdFrame(root, run_west_command)
+	wcs_frame = wcs.WorkspaceCmdFrame(root, run_command)
 	wcs_frame.create_window(10, 100, 1000, 300)
 
 	frame = ttk.Frame(root)
 	frame.pack(padx=20, pady=10, side="bottom", fill="x")
-	logging_box = tk.Text(frame, state="normal", wrap="word", height=10, width=680)
+	logging_box = tk.Text(frame, state="normal", wrap="word", height=15, width=680)
 	scroll = ttk.Scrollbar(frame, orient="vertical", command=logging_box.yview)
 	logging_box.config(yscrollcommand=scroll.set)
 	logging_box.pack(side="left")
